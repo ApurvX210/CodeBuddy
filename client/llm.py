@@ -1,7 +1,9 @@
 import os
 import asyncio
-from typing import Any
+from typing import Any, AsyncGenerator
 from openai import AsyncOpenAI
+
+from client.response import EventType, StreamEvent, TextDelta, TokenUsage
 
 class LLM:
     def __init__(self) -> None:
@@ -13,7 +15,6 @@ class LLM:
 
     def getClient(self) -> AsyncOpenAI:
         if self._client is None:
-            print(self._BASE_URL,self._LLM_API_KEY,self._MODEL)
             self._client =  AsyncOpenAI(
                 api_key=self._LLM_API_KEY,
                 base_url=self._BASE_URL
@@ -26,7 +27,7 @@ class LLM:
             await self._client.close()
             self._client = None
 
-    async def chatCompletion(self,messages:list[dict[str,Any]], stream : bool = True):
+    async def chatCompletion(self,messages:list[dict[str,Any]], stream : bool = True) -> AsyncGenerator[StreamEvent,None]:
         client = self.getClient()
         kwargs = {
             "model" : self._MODEL,
@@ -34,13 +35,36 @@ class LLM:
             "stream" : stream
         }
         if stream:
-            await self._streamResponse()
+            await self._streamResponse(client,kwargs)
         else:
-            await self._nonStreamResponse(client,kwargs)
+            data = await self._nonStreamResponse(client,kwargs)
+            yield data
 
-    async def _streamResponse(self):
-        pass
+        return
 
-    async def _nonStreamResponse(self, client:AsyncOpenAI, kwargs : dict[str,Any]):
+    async def _streamResponse(self, client:AsyncOpenAI, kwargs : dict[str,Any]):
         response = await client.chat.completions.create(**kwargs)
-        print(response)
+
+    async def _nonStreamResponse(self, client:AsyncOpenAI, kwargs : dict[str,Any]) -> StreamEvent:
+        response = await client.chat.completions.create(**kwargs)
+        choice = response.choices[0]
+        message = choice.message
+        text_delta = None
+        if message.content:
+            text_delta = TextDelta(content=message.content)
+
+        usage = None
+        if response.usage:
+            usage = TokenUsage(
+                completion_tokens=response.usage.completion_tokens,
+                prompt_tokens=response.usage.prompt_tokens,
+                total_tokens=response.usage.total_tokens,
+                cached_token=response.usage.prompt_tokens_details.cached_tokens
+            )
+
+        return StreamEvent(
+            type=EventType.MESSAGE_COMPLETE,
+            text_delta=text_delta,
+            finish_reason=choice.finish_reason,
+            usage=usage
+        )
