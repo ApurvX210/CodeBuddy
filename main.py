@@ -8,7 +8,7 @@ async def main():
             "content":"What's up"
         }
     ]
-    async for event in llm.chatCompletion(messages=messages,stream=False):
+    async for event in llm.chatCompletion(messages=messages,stream=True):
         print(event)
     print("Done")
 
