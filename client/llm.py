@@ -1,7 +1,7 @@
 import os
 import asyncio
 from typing import Any, AsyncGenerator
-from openai import AsyncOpenAI, RateLimitError
+from openai import APIConnectionError, AsyncOpenAI, RateLimitError
 
 from client.response import EventType, StreamEvent, TextDelta, TokenUsage
 
@@ -10,7 +10,7 @@ class LLM:
         self._LLM_API_KEY = os.getenv(key="LLM_API_KEY")
         self._BASE_URL = os.getenv(key="BASE_URL")
         self._MODEL = os.getenv(key="MODEL_NAME")
-        self._max_retries = os.getenv(key="MAX_RETRIES")
+        self._max_retries = int(os.getenv(key="MAX_RETRIES"))
         self._client : AsyncOpenAI | None = None
         
 
@@ -29,14 +29,15 @@ class LLM:
             self._client = None
 
     async def chatCompletion(self,messages:list[dict[str,Any]], stream : bool = True) -> AsyncGenerator[StreamEvent,None]:
+        client = self.getClient()
+        kwargs = {
+            "model" : self._MODEL,
+            "messages" : messages,
+            "stream" : stream
+        }
         for attempt in range(self._max_retries+1):
             try:
-                client = self.getClient()
-                kwargs = {
-                    "model" : self._MODEL,
-                    "messages" : messages,
-                    "stream" : stream
-                }
+                
                 if stream:
                     async for event in self._streamResponse(client,kwargs):
                         yield event
@@ -53,7 +54,19 @@ class LLM:
                     continue
                 else:
                     yield StreamEvent(
-                        type=EventType.ERROR
+                        type=EventType.ERROR,
+                        error= f"Rate Limit Exceeded : {e}"
+                    )
+            except APIConnectionError as e:
+                # Exponential Backoff
+                if attempt < self._max_retries:
+                    wait_time = 2 ** attempt
+                    await asyncio.sleep(wait_time)
+                    continue
+                else:
+                    yield StreamEvent(
+                        type=EventType.ERROR,
+                        error= f"Rate Limit Exceeded : {e}"
                     )
 
     async def _streamResponse(self, client:AsyncOpenAI, kwargs : dict[str,Any]):
