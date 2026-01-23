@@ -1,16 +1,17 @@
 from typing import Any
+from agent.agent import Agent
 from client.llm import LLM
 import asyncio
 import click
 
-# class CLI:
-#     def __init__(self):
-#         pass
+class CLI:
+    def __init__(self):
+        self.agent : Agent | None = None
 
-#     def run_single(self):
-#         pass
+    async def run_single(self):
+        async with Agent() as agent:
+            self.agent = agent
 
-#     def 
 
 async def run(messages : dict[str,Any]):
     llm = LLM()
