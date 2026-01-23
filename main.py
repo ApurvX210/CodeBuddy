@@ -3,7 +3,14 @@ from client.llm import LLM
 import asyncio
 import click
 
+# class CLI:
+#     def __init__(self):
+#         pass
 
+#     def run_single(self):
+#         pass
+
+#     def 
 
 async def run(messages : dict[str,Any]):
     llm = LLM()
