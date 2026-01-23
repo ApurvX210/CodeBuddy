@@ -3,7 +3,7 @@ import asyncio
 from typing import Any, AsyncGenerator
 from openai import APIConnectionError, AsyncOpenAI, RateLimitError
 
-from client.response import EventType, StreamEvent, TextDelta, TokenUsage
+from client.response import StreamEventType, StreamEvent, TextDelta, TokenUsage
 
 class LLM:
     def __init__(self) -> None:
@@ -54,7 +54,7 @@ class LLM:
                     continue
                 else:
                     yield StreamEvent(
-                        type=EventType.ERROR,
+                        type=StreamEventType.ERROR,
                         error= f"Rate Limit Exceeded : {e}"
                     )
             except APIConnectionError as e:
@@ -65,7 +65,7 @@ class LLM:
                     continue
                 else:
                     yield StreamEvent(
-                        type=EventType.ERROR,
+                        type=StreamEventType.ERROR,
                         error= f"Rate Limit Exceeded : {e}"
                     )
 
@@ -94,12 +94,12 @@ class LLM:
             if hasattr(choice,"finish_reason"):
                 finish_reason = choice.finish_reason
             yield StreamEvent(
-                type=EventType.TEXT_DELTA,
+                type=StreamEventType.TEXT_DELTA,
                 text_delta=text_delta,
             )
         
         yield StreamEvent(
-                type=EventType.MESSAGE_COMPLETE,
+                type=StreamEventType.MESSAGE_COMPLETE,
                 finish_reason=finish_reason,
                 usage=usage
             )
@@ -122,7 +122,7 @@ class LLM:
             )
 
         return StreamEvent(
-            type=EventType.MESSAGE_COMPLETE,
+            type=StreamEventType.MESSAGE_COMPLETE,
             text_delta=text_delta,
             finish_reason=choice.finish_reason,
             usage=usage
