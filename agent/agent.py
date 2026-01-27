@@ -31,15 +31,17 @@ class Agent:
         ]
 
         response_text = ""
-        async for event in self.llm.chatCompletion(messages=messages,stream=False):
+        async for event in self.llm.chatCompletion(messages=messages,stream=True):
             if event.type == StreamEventType.TEXT_DELTA:
-                content = event.text_delta.content
-                response_text += content
-                yield AgentEvent.text_delta(content=content)
+                print(event)
+                if event.text_delta:
+                    content = event.text_delta.content
+                    response_text += content
+                    yield AgentEvent.text_delta(content=content)
             elif event.type == StreamEventType.ERROR:
                 error = event.error if event.error else "Unknown Error Occured"
                 yield AgentEvent.agent_error(error=error)
-            
+
         if response_text:
             yield AgentEvent.text_complete(content=response_text)
 
