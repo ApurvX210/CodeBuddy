@@ -32,17 +32,16 @@ class CLI:
                     assistant_streaming = True
                 self.agentUi.stream_assistant_delta(content=content)
             elif event.type == AgentEventType.TEXT_COMPLETE:
-                print("Yash")
                 final_response = event.data.get("content","")
                 assistant_streaming = False
                 self.agentUi.end_assistant()
         
         return final_response
 
-async def run(messages : dict[str,Any]):
-    llm = LLM()
-    async for event in llm.chatCompletion(messages=messages,stream=False):
-        print(event)
+# async def run(messages : dict[str,Any]):
+#     llm = LLM()
+#     async for event in llm.chatCompletion(messages=messages,stream=False):
+#         print(event)
 
 @click.command()
 @click.argument("prompt",required=False)

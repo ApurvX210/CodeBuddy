@@ -15,9 +15,9 @@ class Agent:
         #To Do - Update context
         final_response = None
         async for event in self._agentic_loop():
-            yield event
             if event.type == AgentEventType.TEXT_COMPLETE:
                 final_response = event.data.get("content")
+            yield event
 
         yield AgentEvent.agent_end(response=final_response)
                 
@@ -33,7 +33,7 @@ class Agent:
         response_text = ""
         async for event in self.llm.chatCompletion(messages=messages,stream=True):
             if event.type == StreamEventType.TEXT_DELTA:
-                print(event)
+                # print(event)
                 if event.text_delta:
                     content = event.text_delta.content
                     response_text += content
@@ -41,7 +41,7 @@ class Agent:
             elif event.type == StreamEventType.ERROR:
                 error = event.error if event.error else "Unknown Error Occured"
                 yield AgentEvent.agent_error(error=error)
-
+            
         if response_text:
             yield AgentEvent.text_complete(content=response_text)
 

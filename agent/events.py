@@ -5,7 +5,6 @@ from typing import Any
 
 from client.response import TokenUsage
 
-@dataclass
 class AgentEventType(str,Enum):
     # Agent Lifecycle
     AGENT_START = "agent_start"
@@ -58,7 +57,7 @@ class AgentEvent:
     @classmethod
     def text_complete(cls,content : str) -> AgentEvent:
         return cls(
-            type=AgentEventType.AGENT_START,
+            type=AgentEventType.TEXT_COMPLETE,
             data={"content":content}
         )
     
