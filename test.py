@@ -1,13 +1,12 @@
 class Test:
-    a = {}
-    b = 10
+    def __init__(self):
+        self.data = []
 
 
 var = Test()
 var2 = Test()
 
-var.a[10] = 20
-var.b = 20
+var.data.append(10)
+var2.data.append(20)
 
-print(var.a,var.b)
-print(var2.a,var2.b)
+print(var.data,var2.data)
