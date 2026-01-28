@@ -3,35 +3,29 @@ from typing import AsyncGenerator
 from agent.events import AgentEvent, AgentEventType
 from client.llm import LLM
 from client.response import StreamEventType
+from context.contextManager import ContextManager
 
 
 class Agent:
     def __init__(self):
         self.llm = LLM()
-
+        self.contextManager = ContextManager()
 
     async def run(self,message:str) -> AsyncGenerator[AgentEvent]:
         yield AgentEvent.agent_start(message=message)
-        #To Do - Update context
+        self.contextManager.add_user_message(content=message)
         final_response = None
         async for event in self._agentic_loop():
             if event.type == AgentEventType.TEXT_COMPLETE:
                 final_response = event.data.get("content")
             yield event
-
+        self.contextManager.add_assistant_message(content=final_response)
         yield AgentEvent.agent_end(response=final_response)
                 
 
     async def _agentic_loop(self) -> AsyncGenerator[AgentEvent]:
-        messages = [
-            {
-                "role":"user",
-                "content":"Hello How are you"
-            }
-        ]
-
         response_text = ""
-        async for event in self.llm.chatCompletion(messages=messages,stream=True):
+        async for event in self.llm.chatCompletion(messages=self.contextManager.get_message(),stream=True):
             if event.type == StreamEventType.TEXT_DELTA:
                 # print(event)
                 if event.text_delta:
