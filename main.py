@@ -35,6 +35,11 @@ class CLI:
                 final_response = event.data.get("content","")
                 assistant_streaming = False
                 self.agentUi.end_assistant()
+            elif event.type == AgentEventType.AGENT_ERROR:
+                error = event.data.get("error","Unkown Error")
+                console.print()
+                assistant_streaming = False
+                self.agentUi.end_assistant(f"\n[error]Error : {error}[/error]")
         
         return final_response
 
