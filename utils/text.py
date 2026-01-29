@@ -11,7 +11,6 @@ def get_tokenizer(model : str):
     
 def count_token(text:str,model:str) -> int:
     tokenizer = get_tokenizer(model=model)
-    
     if tokenizer:
         return len(tokenizer(text))
 

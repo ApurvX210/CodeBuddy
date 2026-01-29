@@ -54,7 +54,7 @@ Your capabilities:
 You are pair programming with the user to help them accomplish their goals. You should be proactive, thorough and focused on delivering high-quality results."""
 
 
-def _get_environment_section(config: Config) -> str:
+def _get_environment_section(config) -> str:
     """Generate the environment section."""
     now = datetime.now()
     os_info = f"{platform.system()} {platform.release()}"
@@ -223,7 +223,7 @@ The following information has been stored from previous interactions:
 Use this information to personalize your responses and maintain consistency."""
 
 
-def _get_tool_guidelines_section(tools: list[Tool]) -> str:
+def _get_tool_guidelines_section(tools) -> str:
     """Generate tool usage guidelines."""
 
     regular_tools = [t for t in tools if not t.name.startswith("subagent_")]
@@ -331,3 +331,7 @@ To break out of this loop, please:
 
 Do not repeat the same action again.
 """
+
+
+if __name__ == "__main__":
+    print(get_system_prompt())

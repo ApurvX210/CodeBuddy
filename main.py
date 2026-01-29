@@ -52,13 +52,7 @@ class CLI:
 @click.argument("prompt",required=False)
 def main(prompt : str | None):
     cli = CLI()
-    messages = [
-        {
-            "role":"user",
-            "content":prompt
-        }
-    ]
-    result = asyncio.run(cli.run_single(message=messages))
+    result = asyncio.run(cli.run_single(message=prompt))
     if result is None:
         sys.exit(1)
 

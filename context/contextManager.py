@@ -49,7 +49,8 @@ class ContextManager:
         if self._system_prompt:
             messages.append(
                 {
-                    'system': self._system_prompt
+                    'role': "system",
+                    'content': self._system_prompt
                 }
             )
         for messageItem in self._messages:
