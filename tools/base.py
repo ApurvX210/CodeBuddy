@@ -5,11 +5,18 @@ from pathlib import Path
 from typing import Any
 from dataclasses import dataclass, field
 from pydantic import BaseModel, ValidationError
+from pydantic.json_schema import model_json_schema
 
 @dataclass
 class ToolInvocation:
     params: dict[str,Any]
     cwd: Path
+
+@dataclass
+class ToolConfirmation:
+    tool_name : str
+    params: dict[str,Any]
+    description : str
 
 @dataclass
 class ToolResult:
@@ -55,8 +62,39 @@ class Tool(abc.ABC):
                     field = "".join(str(x) for x in error.get("loc",[]))
                     msg = error.get("msg","Validation Error")
                     errors.append(f"Parameter {field} : {msg}")
-                return error
+                return errors
             except Exception as e:
                 return [str(e)]
             
         return []
+    
+    def is_mutating(self, params : dict[str,Any]) -> bool:
+        return self.kind in [ToolKind.WRITE,ToolKind.SHELL,ToolKind.NETWORK,ToolKind.MEMORY]
+    
+    async def get_confirmation(self,invocation: ToolInvocation) -> ToolInvocation | None:
+        if not self.is_mutating(invocation.params):
+            return None
+        
+        return ToolConfirmation(
+            tool_name=self.name,
+            params=invocation.params,
+            description=f"Execute {self.name}"
+        )
+    
+    def to_openai_schema(self) -> dict[str,Any]:
+        schema = self.schema
+        json_schema = None
+        if isinstance(schema,type) and issubclass(schema,BaseModel):
+            json_schema = model_json_schema(schema,mode="serialization")
+
+        return {
+            'name' : self.name,
+            'description' : self.description,
+            'parameters' : {
+                'type' : 'object',
+                'properties' : json_schema.get('properties',{}),
+                'required' : json_schema.get('required',[])
+            }
+        }
+
+    
