@@ -83,18 +83,31 @@ class Tool(abc.ABC):
     
     def to_openai_schema(self) -> dict[str,Any]:
         schema = self.schema
-        json_schema = None
         if isinstance(schema,type) and issubclass(schema,BaseModel):
             json_schema = model_json_schema(schema,mode="serialization")
 
-        return {
-            'name' : self.name,
-            'description' : self.description,
-            'parameters' : {
-                'type' : 'object',
-                'properties' : json_schema.get('properties',{}),
-                'required' : json_schema.get('required',[])
+            return {
+                'name' : self.name,
+                'description' : self.description,
+                'parameters' : {
+                    'type' : 'object',
+                    'properties' : json_schema.get('properties',{}),
+                    'required' : json_schema.get('required',[])
+                }
             }
-        }
+        
+        if isinstance(schema,dict):
+            result = {
+                'name' : self.name,
+                "description" : self.description
+            }
 
+            if 'parameters' in schema:
+                result["parameters"] = schema['parameters']
+            else:
+                result["parameters"] = schema
+
+            return result
+        
+        raise ValueError(f'Invalid schema type for tool {self.name} : {type(schema)}')
     
