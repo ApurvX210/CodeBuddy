@@ -25,6 +25,18 @@ class ToolResult:
     error: str | None = None
     metaData : dict[str,Any] = field(default_factory=dict)
 
+    @classmethod
+    def error_result(
+        cls,
+        error:str,
+        output:str = ""
+    ):
+        return cls(
+            success=False,
+            output=output,
+            error=error
+        )
+
 class ToolKind(str,Enum):
     READ = "read"
     WRITE = "write"
