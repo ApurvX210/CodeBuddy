@@ -2,6 +2,7 @@ from pydantic import BaseModel, Field
 
 from tools.base import Tool, ToolInvocation, ToolKind, ToolResult
 from utils.paths import resolve_path,is_binary_file
+from utils.text import count_token
 
 class ReadFileParams(BaseModel):
     path : str = Field(
@@ -28,6 +29,8 @@ class ReadFileTool(Tool):
     schema = ReadFileParams
 
     MAX_FILE_SIZE = 1024 * 1024 * 10
+
+    MAX_OUTPUT_TOKENS = 25000
 
     async def execute(self, invocation : ToolInvocation) -> ToolResult:
         params = ReadFileParams(**invocation.params)
@@ -58,3 +61,38 @@ class ReadFileTool(Tool):
                 f"Cannot read Binary file {path.name}. ({size_str})"
                 f"This tool only reads text files."
             )
+        
+        try:
+            content = path.read_text(encoding='utf-8')
+        except UnicodeDecodeError:
+            content = path.read_text(encoding='latin-1')
+
+        lines = content.splitlines()
+        total_lines = len(lines)
+
+        if total_lines == 0:
+            return ToolResult.success_result(
+                "File is empty.",
+                metadata={
+                    "Lines" : 0,
+                }
+            )
+        
+        start_idx = max(0,params.offset - 1)
+        end_idx = None
+        if params.limit is not None:
+            end_idx = min(start_idx + params.limit,total_lines)
+        else:
+            end_idx = total_lines
+
+        selected_lines = lines[start_idx:end_idx]
+        formatted_line = []
+
+        for i,line in enumerate(selected_lines,start=start_idx+1):
+            formatted_line.append(f"{i:6} | {line}")
+
+        output = "\n".join(formatted_line)
+        token_count = count_token(output)
+
+        if token_count > self.MAX_OUTPUT_TOKENS:
+            output = []

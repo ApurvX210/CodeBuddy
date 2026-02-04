@@ -36,6 +36,19 @@ class ToolResult:
             output=output,
             error=error
         )
+    
+    @classmethod
+    def success_result(
+        cls,
+        output:str,
+        **kwargs : Any
+    ):
+        return cls(
+            success=True,
+            error = None,
+            output=output,
+            **kwargs
+        )
 
 class ToolKind(str,Enum):
     READ = "read"
