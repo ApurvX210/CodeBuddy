@@ -25,6 +25,8 @@ class ToolResult:
     error: str | None = None
     metaData : dict[str,Any] = field(default_factory=dict)
 
+    truncated : bool = False
+
     @classmethod
     def error_result(
         cls,
