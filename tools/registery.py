@@ -3,6 +3,8 @@ from typing import Any
 from tools.base import Tool, ToolInvocation, ToolResult
 import logging
 
+from tools.builtin import get_all_builtin_tool
+
 logger = logging.getLogger(__name__)
 
 class ToolRegistery:
@@ -62,4 +64,11 @@ class ToolRegistery:
                 f'Internal Error : {str(e)}',
                 metadata={'tool_name',name}
             )
+        
+def create_default_registry() -> ToolRegistery:
+    registry = ToolRegistery()
+
+    for tool_class in get_all_builtin_tool():
+        registry.register(tool_class())
+    return registry
         

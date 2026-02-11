@@ -4,12 +4,14 @@ from agent.events import AgentEvent, AgentEventType
 from client.llm import LLM
 from client.response import StreamEventType
 from context.contextManager import ContextManager
+from tools.registery import create_default_registry
 
 
 class Agent:
     def __init__(self):
         self.llm = LLM()
         self.contextManager = ContextManager()
+        self.tool_registry = create_default_registry()
 
     async def run(self,message:str) -> AsyncGenerator[AgentEvent]:
         yield AgentEvent.agent_start(message=message)
@@ -24,8 +26,9 @@ class Agent:
                 
 
     async def _agentic_loop(self) -> AsyncGenerator[AgentEvent]:
+        tool_schemas = self.tool_registry.getSchemas()
         response_text = ""
-        async for event in self.llm.chatCompletion(messages=self.contextManager.get_message(),stream=True):
+        async for event in self.llm.chatCompletion(messages=self.contextManager.get_message(),stream=True,tool_schemas=tool_schemas if tool_schemas else None):
             if event.type == StreamEventType.TEXT_DELTA:
                 # print(event)
                 if event.text_delta:
