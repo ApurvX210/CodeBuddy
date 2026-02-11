@@ -1,6 +1,6 @@
 from pathlib import Path
 from typing import Any
-from tools.base import Tool
+from tools.base import Tool, ToolInvocation, ToolResult
 import logging
 
 logger = logging.getLogger(__name__)
@@ -41,8 +41,25 @@ class ToolRegistery:
         return [tool.to_openai_schema() for tool in self.get_tools()]
     
     async def invoke(self,name : str,params : dict[str,Any], path : Path | None):
-        tool = self._tools[name]
-        errors = tool.validate_params(params=params)
-        if len(errors) > 0:
-
+        tool = self.get(name)
+        if tool is None:
+            return ToolResult.error_result(error=f"Unkown Tool {name}",metadata={
+                "tool_name" : name
+            })
+        validation_errors = tool.validate_params(params=params)
+        if validation_errors:
+            return ToolResult.error_result(
+                error=f"Invalid paramtres : {'; '.join(validation_errors)}",
+                metadata={'tool_name':name,'validation_errors':validation_errors}
+            )
+        
+        invocation = ToolInvocation(params=params,cwd=path)
+        try:
+            await tool.execute(invocation)
+        except Exception as e:
+            logger.exception(f"Tool {name} raised unexpected error")
+            return ToolResult.error_result(
+                f'Internal Error : {str(e)}',
+                metadata={'tool_name',name}
+            )
         
