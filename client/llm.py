@@ -28,13 +28,33 @@ class LLM:
             await self._client.close()
             self._client = None
 
-    async def chatCompletion(self,messages:list[dict[str,Any]], stream : bool = True) -> AsyncGenerator[StreamEvent,None]:
+    def _build_tools(self,tools : list[dict[str,Any]]):
+        return [
+            {
+                'type' : 'function',
+                'function' : {
+                    'name' : tool['name'],
+                    'description' : tools.get('description',""),
+                    'parameters' : tool.get('parameters',{
+                        'type' : 'object',
+                        'properties' : {}
+                    })
+                }
+            }
+            for tool in tools
+        ]
+
+    async def chatCompletion(self,messages:list[dict[str,Any]], stream : bool = True,tools:list[dict[str,Any]] | None = None) -> AsyncGenerator[StreamEvent,None]:
         client = self.getClient()
         kwargs = {
             "model" : self._MODEL,
             "messages" : messages,
             "stream" : stream
         }
+        if tools:
+            kwargs["tools"] = self._build_tools(tools)
+            kwargs["tool_choice"] = "auto"
+
         for attempt in range(self._max_retries+1):
             try:
                 

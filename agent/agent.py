@@ -28,7 +28,7 @@ class Agent:
     async def _agentic_loop(self) -> AsyncGenerator[AgentEvent]:
         tool_schemas = self.tool_registry.getSchemas()
         response_text = ""
-        async for event in self.llm.chatCompletion(messages=self.contextManager.get_message(),stream=True,tool_schemas=tool_schemas if tool_schemas else None):
+        async for event in self.llm.chatCompletion(messages=self.contextManager.get_message(),stream=True,tools=tool_schemas if tool_schemas else None):
             if event.type == StreamEventType.TEXT_DELTA:
                 # print(event)
                 if event.text_delta:
