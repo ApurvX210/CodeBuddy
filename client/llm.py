@@ -34,7 +34,7 @@ class LLM:
                 'type' : 'function',
                 'function' : {
                     'name' : tool['name'],
-                    'description' : tools.get('description',""),
+                    'description' : tool.get('description',""),
                     'parameters' : tool.get('parameters',{
                         'type' : 'object',
                         'properties' : {}
@@ -102,6 +102,9 @@ class LLM:
             text_delta = None
             if message.content:
                 text_delta = TextDelta(content=message.content)
+
+            print(chunk)
+            print(message.tool_calls)
 
             if hasattr(chunk,"usage") and chunk.usage:
                 if chunk.usage:
