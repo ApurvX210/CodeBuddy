@@ -31,7 +31,7 @@ class ContextManager:
         messageItem = MessageItem(
                 role="user",
                 content=content,
-                token_count=count_token(content,self.model)
+                token_count=count_token(content or "",self.model)
             )
         self._messages.append(messageItem)
 
@@ -39,7 +39,7 @@ class ContextManager:
         messageItem = MessageItem(
                 role="assistant",
                 content=content,
-                token_count=count_token(content,self.model)
+                token_count=count_token(content or "",self.model)
             )
         self._messages.append(messageItem)
 

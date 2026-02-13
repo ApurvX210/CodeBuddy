@@ -94,17 +94,12 @@ class LLM:
 
         finish_reason: str | None = None
         usage: TokenUsage | None = None
+        tool_calls : dict[int,dict[str,Any]] = {}
         async for chunk in response:
             if not chunk.choices:
                 continue
             choice = chunk.choices[0]
             message = choice.delta
-            text_delta = None
-            if message.content:
-                text_delta = TextDelta(content=message.content)
-
-            print(chunk)
-            print(message.tool_calls)
 
             if hasattr(chunk,"usage") and chunk.usage:
                 if chunk.usage:
@@ -116,11 +111,35 @@ class LLM:
                     )
             if hasattr(choice,"finish_reason"):
                 finish_reason = choice.finish_reason
-            yield StreamEvent(
-                type=StreamEventType.TEXT_DELTA,
-                text_delta=text_delta,
-            )
+
+            if message.content:
+                yield StreamEvent(
+                    type=StreamEventType.TEXT_DELTA,
+                    text_delta=TextDelta(content=message.content),
+                )
+            
+            if message.tool_calls:
+                for tool_call_delta in message.tool_calls:
+                    print(tool_call_delta)
+                    idx = tool_call_delta.index
+                    if idx not in tool_calls:
+                        tool_calls[idx] = {
+                            "id" : tool_call_delta.id or "",
+                            "arguments" : "",
+                            "name" : None
+                        }
+                    
+                    if tool_call_delta.function and tool_call_delta.function.arguments:
+                        tool_calls[idx]["arguments"] += tool_call_delta.function.arguments
+
+                    if tool_call_delta.function and tool_call_delta.function.name:
+                        tool_calls[idx]["name"] = tool_call_delta.function.name
+                        yield StreamEvent(
+                            type=StreamEventType.TOOL_CALL_START,
+                            
+                        )
         
+        print(tool_calls)
         yield StreamEvent(
                 type=StreamEventType.MESSAGE_COMPLETE,
                 finish_reason=finish_reason,
