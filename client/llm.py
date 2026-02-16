@@ -3,7 +3,7 @@ import asyncio
 from typing import Any, AsyncGenerator
 from openai import APIConnectionError, AsyncOpenAI, RateLimitError
 
-from client.response import StreamEventType, StreamEvent, TextDelta, TokenUsage, ToolCallDelta
+from client.response import StreamEventType, StreamEvent, TextDelta, TokenUsage, ToolCall, ToolCallDelta, parse_tool_call_arguments
 
 class LLM:
     def __init__(self) -> None:
@@ -148,8 +148,16 @@ class LLM:
                                 name=tool_calls[idx]["name"]
                             )
                         )
-        
-            
+        for idx,tc in tool_calls.items():
+            yield StreamEvent(
+                type=StreamEventType.TOOL_CALL_COMPLETE,
+                tool_call_delte=ToolCall(
+                    call_id=tc["id"],
+                    name=tc["name"],
+                    arguments=parse_tool_call_arguments(tc["arguments"])
+                )
+            )
+           
         yield StreamEvent(
                 type=StreamEventType.MESSAGE_COMPLETE,
                 finish_reason=finish_reason,
