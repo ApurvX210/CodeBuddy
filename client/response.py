@@ -30,6 +30,18 @@ class TokenUsage:
             cached_token = self.cached_token + other.cached_token,
         )
         
+@dataclass
+class ToolCall:
+    call_id : str
+    name : str
+    arguments : str = ""
+
+@dataclass
+class ToolCallDelta:
+    call_id : str
+    name : str | None = None
+    arguments_delta : str = ""
+
 
 @dataclass
 class StreamEvent:
@@ -39,4 +51,4 @@ class StreamEvent:
     finish_reason: str | None = None
     usage: TokenUsage | None = None
     tool_call : ToolCall | None = None
-    tool_call_delte : ToolCallDelte | None = None
+    tool_call_delte : ToolCallDelta | None = None
