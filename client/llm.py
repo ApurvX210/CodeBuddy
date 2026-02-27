@@ -180,6 +180,31 @@ class LLM:
                 total_tokens=response.usage.total_tokens,
                 cached_token=response.usage.prompt_tokens_details.cached_tokens
             )
+        tool_calls = list[ToolCall] = []
+        if message.tool_calls:
+            for tool_call_delta in message.tool_calls:
+                idx = tool_call_delta.index
+                if idx not in tool_calls:
+                    tool_calls[idx] = {
+                        "id" : tool_call_delta.id or "",
+                        "arguments" : "",
+                        "name" : None
+                    }
+                
+                if tool_call_delta.function and tool_call_delta.function.arguments:
+                    tool_calls[idx]["arguments"] = tool_call_delta.function.arguments
+                if tool_call_delta.function and tool_call_delta.function.name:
+                    tool_calls[idx]["name"] = tool_call_delta.function.name
+
+        for idx,tc in tool_calls.items():
+            yield StreamEvent(
+                type=StreamEventType.TOOL_CALL_COMPLETE,
+                tool_call_delte=ToolCall(
+                    call_id=tc["id"],
+                    name=tc["name"],
+                    arguments=parse_tool_call_arguments(tc["arguments"])
+                )
+            )
 
         return StreamEvent(
             type=StreamEventType.MESSAGE_COMPLETE,
