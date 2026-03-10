@@ -1,4 +1,5 @@
 from __future__ import annotations
+from pathlib import Path
 from typing import AsyncGenerator, List
 from agent.events import AgentEvent, AgentEventType
 from client.llm import LLM
@@ -36,13 +37,19 @@ class Agent:
                     response_text += content
                     yield AgentEvent.text_delta(content=content)
             elif event.type == StreamEventType.TOOL_CALL_COMPLETE:
-                tool_calls.append(event.tool_call)
+                if event.tool_call:
+                    tool_calls.append(event.tool_call)
             elif event.type == StreamEventType.ERROR:
                 error = event.error if event.error else "Unknown Error Occured"
                 yield AgentEvent.agent_error(error=error)
             
         if response_text:
             yield AgentEvent.text_complete(content=response_text)
+
+        for tool_call in tool_calls:
+            yield AgentEvent.tool_call_start(call_id=tool_call.call_id,name=tool_call.name,arguments=tool_call.arguments)
+
+            self.tool_registry.invoke(name=tool_call.name,params=tool_call.arguments,cwd=Path.cwd)
 
     async def __aenter__(self) -> Agent:
         return self

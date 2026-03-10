@@ -42,7 +42,7 @@ class ToolRegistery:
     def getSchemas(self) ->list[dict[str,Any]]:
         return [tool.to_openai_schema() for tool in self.get_tools()]
     
-    async def invoke(self,name : str,params : dict[str,Any], path : Path | None):
+    async def invoke(self,name : str,params : dict[str,Any], cwd : Path | None):
         tool = self.get(name)
         if tool is None:
             return ToolResult.error_result(error=f"Unkown Tool {name}",metadata={
@@ -55,7 +55,7 @@ class ToolRegistery:
                 metadata={'tool_name':name,'validation_errors':validation_errors}
             )
         
-        invocation = ToolInvocation(params=params,cwd=path)
+        invocation = ToolInvocation(params=params,cwd=cwd)
         try:
             await tool.execute(invocation)
         except Exception as e:

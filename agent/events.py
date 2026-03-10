@@ -15,6 +15,10 @@ class AgentEventType(str,Enum):
     TEXT_DELTA = "text_delta"
     TEXT_COMPLETE = "text_complete"
 
+    # Tool Call
+    TOOL_CALL_START = "tool_call_start"
+    TOOL_CALL_COMPLETE = "tool_call_complete"
+
 @dataclass
 class AgentEvent:
     type : AgentEventType
@@ -59,5 +63,16 @@ class AgentEvent:
         return cls(
             type=AgentEventType.TEXT_COMPLETE,
             data={"content":content}
+        )
+    
+    @classmethod
+    def tool_call_start(cls,call_id : str,name : str,arguments : dict[str,Any]) -> AgentEvent:
+        return cls(
+            type=AgentEventType.TOOL_CALL_START,
+            data={
+                "call_id":call_id,
+                "name" : name,
+                "arguments" : arguments
+            }
         )
     
