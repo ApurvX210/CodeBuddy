@@ -134,7 +134,7 @@ class LLM:
                         yield StreamEvent(
                             type=StreamEventType.TOOL_CALL_DELTA,
                             tool_call_delte=ToolCallDelta(
-                                id=tool_calls[idx]["id"],
+                                call_id=tool_calls[idx]["id"],
                                 name=tool_calls[idx]["name"],
                                 arguments_delta=tool_calls[idx]["arguments"]
                             )
@@ -151,7 +151,7 @@ class LLM:
         for idx,tc in tool_calls.items():
             yield StreamEvent(
                 type=StreamEventType.TOOL_CALL_COMPLETE,
-                tool_call_delte=ToolCall(
+                tool_call=ToolCall(
                     call_id=tc["id"],
                     name=tc["name"],
                     arguments=parse_tool_call_arguments(tc["arguments"])
@@ -199,14 +199,14 @@ class LLM:
         for idx,tc in tool_calls.items():
             yield StreamEvent(
                 type=StreamEventType.TOOL_CALL_COMPLETE,
-                tool_call_delte=ToolCall(
+                tool_call=ToolCall(
                     call_id=tc["id"],
                     name=tc["name"],
                     arguments=parse_tool_call_arguments(tc["arguments"])
                 )
             )
 
-        return StreamEvent(
+        yield StreamEvent(
             type=StreamEventType.MESSAGE_COMPLETE,
             text_delta=text_delta,
             finish_reason=choice.finish_reason,

@@ -1,8 +1,8 @@
 from __future__ import annotations
-from typing import AsyncGenerator
+from typing import AsyncGenerator, List
 from agent.events import AgentEvent, AgentEventType
 from client.llm import LLM
-from client.response import StreamEventType
+from client.response import StreamEventType, ToolCall
 from context.contextManager import ContextManager
 from tools.registery import create_default_registry
 
@@ -28,13 +28,15 @@ class Agent:
     async def _agentic_loop(self) -> AsyncGenerator[AgentEvent]:
         tool_schemas = self.tool_registry.getSchemas()
         response_text = ""
+        tool_calls : List[ToolCall] = []
         async for event in self.llm.chatCompletion(messages=self.contextManager.get_message(),stream=True,tools=tool_schemas if tool_schemas else None):
             if event.type == StreamEventType.TEXT_DELTA:
-                # print(event)
                 if event.text_delta:
                     content = event.text_delta.content
                     response_text += content
                     yield AgentEvent.text_delta(content=content)
+            elif event.type == StreamEventType.TOOL_CALL_COMPLETE:
+                tool_calls.append(event.tool_call)
             elif event.type == StreamEventType.ERROR:
                 error = event.error if event.error else "Unknown Error Occured"
                 yield AgentEvent.agent_error(error=error)
