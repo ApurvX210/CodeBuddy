@@ -9,7 +9,7 @@
             "type": "debugpy",
             "request": "launch",
             "program": "${file}",
-            "args": ["Read main.py"],
+            "args": ["read main.py file for me"],
             "console": "integratedTerminal"
         }
     ]

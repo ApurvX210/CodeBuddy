@@ -120,7 +120,6 @@ class LLM:
             
             if message.tool_calls:
                 for tool_call_delta in message.tool_calls:
-                    print(tool_call_delta)
                     idx = tool_call_delta.index
                     if idx not in tool_calls:
                         tool_calls[idx] = {

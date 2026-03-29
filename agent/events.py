@@ -87,7 +87,7 @@ class AgentEvent:
                 "success" : result.success,
                 "output" : result.output,
                 "error" : result.error,
-                "metadata" : result.metaData,
+                "metadata" : result.metadata,
                 "truncated" : result.truncated
             }
         )

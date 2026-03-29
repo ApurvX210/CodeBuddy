@@ -23,7 +23,7 @@ class ToolResult:
     success: bool
     output: str
     error: str | None = None
-    metaData : dict[str,Any] = field(default_factory=dict)
+    metadata : dict[str,Any] = field(default_factory=dict)
 
     truncated : bool = False
 
@@ -54,7 +54,6 @@ class ToolResult:
             **kwargs
         )
     
-    @classmethod
     def to_model_output(self) -> str:
         if self.success:
             return self.output

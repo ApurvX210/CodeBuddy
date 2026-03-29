@@ -37,7 +37,6 @@ class ReadFileTool(Tool):
             params = ReadFileParams(**invocation.params)
 
             path = resolve_path(invocation.cwd,params.path)
-
             if not path.exists():
                 return ToolResult.error_result(
                     error=f"File not found : {path}"
@@ -119,6 +118,7 @@ class ReadFileTool(Tool):
                 }
             )
         except Exception as e:
+            print(e.__traceback__)
             return ToolResult.error_result(
-                error=f"Failes to read file {e}"
+                error=f"Failed to read file {e}"
             )
