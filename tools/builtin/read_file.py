@@ -1,3 +1,6 @@
+import os
+import traceback
+
 from pydantic import BaseModel, Field
 
 from tools.base import Tool, ToolInvocation, ToolKind, ToolResult
@@ -92,7 +95,8 @@ class ReadFileTool(Tool):
                 formatted_line.append(f"{i:6} | {line}")
 
             output = "\n".join(formatted_line)
-            token_count = count_token(output)
+            model = os.getenv("MODEL_NAME")
+            token_count = count_token(output,model)
 
             truncated = False
             if token_count > self.MAX_OUTPUT_TOKENS:
@@ -118,7 +122,7 @@ class ReadFileTool(Tool):
                 }
             )
         except Exception as e:
-            print(e.__traceback__)
+            traceback.print_exc()
             return ToolResult.error_result(
                 error=f"Failed to read file {e}"
             )
