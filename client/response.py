@@ -2,6 +2,7 @@ from __future__ import annotations
 from dataclasses import dataclass
 from enum import Enum
 import json
+from typing import Any
 @dataclass
 class TextDelta:
     content: str
@@ -62,3 +63,17 @@ def parse_tool_call_arguments(argument_str : str) -> dict[str,Any]:
         return json.loads(argument_str)
     except json.JSONDecodeError:
         return {'raw_arguments':argument_str}
+    
+@dataclass
+class ToolResultMessage:
+    tool_call_id : str
+    content : str
+    is_error : bool = False
+    
+    def to_openai_message(self) -> dict[str,str]:
+        return {
+            "role" : "tool",
+            "tool_call_id" : self.tool_call_id,
+            "content" : self.content
+        }
+

@@ -3,7 +3,7 @@ from pathlib import Path
 from typing import AsyncGenerator, List
 from agent.events import AgentEvent, AgentEventType
 from client.llm import LLM
-from client.response import StreamEventType, ToolCall
+from client.response import StreamEventType, ToolCall, ToolResultMessage
 from context.contextManager import ContextManager
 from tools.registery import create_default_registry
 
@@ -46,10 +46,22 @@ class Agent:
         if response_text:
             yield AgentEvent.text_complete(content=response_text)
 
+        tool_call_result : list[ToolResultMessage] = []
         for tool_call in tool_calls:
             yield AgentEvent.tool_call_start(call_id=tool_call.call_id,name=tool_call.name,arguments=tool_call.arguments)
 
-            self.tool_registry.invoke(name=tool_call.name,params=tool_call.arguments,cwd=Path.cwd)
+            result = await self.tool_registry.invoke(name=tool_call.name,params=tool_call.arguments,cwd=Path.cwd)
+
+            yield AgentEvent.tool_call_complete(call_id=tool_call.call_id,name=tool_call.name,result=result)
+
+            tool_call_result.append(ToolResultMessage(
+                tool_call_id=tool_call.call_id,
+                content=result.to_model_output(),
+                is_error= not result.success
+            ))
+        
+        for tool_result in tool_call_result:
+            self.contextManager.add_tool_result()
 
     async def __aenter__(self) -> Agent:
         return self
