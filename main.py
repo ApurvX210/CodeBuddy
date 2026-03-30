@@ -38,9 +38,10 @@ class CLI:
                 self.agentUi.end_assistant()
             elif event.type == AgentEventType.AGENT_ERROR:
                 error = event.data.get("error","Unkown Error")
-                console.print()
                 assistant_streaming = False
                 self.agentUi.end_assistant(f"\n[error]Error : {error}[/error]")
+            elif event.type == AgentEventType.TOOL_CALL_START:
+                pass
         
         return final_response
 
