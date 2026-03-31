@@ -9,6 +9,19 @@ def resolve_path(base : str | Path, path : str | Path):
     
     return Path(base).resolve() / path
 
+def display_path_rel_to_cwd(base : str | Path, path : str | Path):
+    try:
+        path = Path(path)
+    except Exception:
+        return path
+
+    if base:
+        try:
+            return path.relative_to(base)
+        except Exception:
+            pass
+    return str(path)
+
 def is_binary_file(path : str | Path) -> bool:
     try:
         with open(path,"rb") as f:
