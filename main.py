@@ -41,7 +41,33 @@ class CLI:
                 assistant_streaming = False
                 self.agentUi.end_assistant(f"\n[error]Error : {error}[/error]")
             elif event.type == AgentEventType.TOOL_CALL_START:
-                pass
+                tool_name = event.data.get("name","unknown")
+                tool = self.agent.tool_registry.get(tool_name)
+                tool_kind = None
+                if not tool:
+                    tool_kind = None
+                else:
+                    tool_kind = tool.kind.value
+
+                self.agentUi.tool_call_start(event.data.get("call_id"),
+                                            tool_name,
+                                            tool_kind,
+                                            event.data.get("arguments"),
+                                            )
+            elif event.type == AgentEventType.TOOL_CALL_COMPLETE:
+                tool_name = event.data.get("name","unknown")
+                tool = self.agent.tool_registry.get(tool_name)
+                tool_kind = None
+                if not tool:
+                    tool_kind = None
+                else:
+                    tool_kind = tool.kind.value
+
+                self.agentUi.tool_call_start(event.data.get("call_id"),
+                                            tool_name,
+                                            tool_kind,
+                                            event.data.get("arguments"),
+                                            )
         
         return final_response
 
