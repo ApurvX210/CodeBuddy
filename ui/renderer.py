@@ -95,6 +95,19 @@ class AgentUI:
             table.add_row(key,value)
 
         return table
+    
+    def print_welcome(self, title: str, lines: list[str]) -> None:
+        body = "\n".join(lines)
+        self.console.print(
+            Panel(
+                Text(body, style="code"),
+                title=Text(title, style="highlight"),
+                title_align="left",
+                border_style="border",
+                box=box.ROUNDED,
+                padding=(1, 2),
+            )
+        )
 
 
     def tool_call_start(self,call_id : str,name : str,tool_kind:str, arguments: dict[str,Any]):
@@ -135,9 +148,8 @@ class AgentUI:
 
         code_lines : list[str] = []
         start_line: int = None
-
         for line in body.splitlines():
-            m = re.match(r"^\s*(\d+)\|(.*)",line)
+            m = re.match(r"^\s*(\d+)\s*\|(.*)",line)
             if not m:
                 continue
             line_no = int(m.group(1))

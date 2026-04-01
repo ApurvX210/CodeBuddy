@@ -17,7 +17,7 @@ def display_path_rel_to_cwd(base : str | Path, path : str | Path):
 
     if base:
         try:
-            return path.relative_to(base)
+            return str(path.relative_to(base))
         except Exception:
             pass
     return str(path)

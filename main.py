@@ -19,6 +19,24 @@ class CLI:
             self.agent = agent
             return await self._process_message(message)
         
+    async def run_interactive(self) ->str:
+        async with Agent() as agent:
+            self.agentUi.print_welcome()
+            self.agent = agent
+            while True:
+                try:
+                    user_input = console.input("\n[user]>[/user] ").strip()
+                    if not user_input:
+                        continue
+                    
+                    await self._process_message(user_input)
+                except KeyboardInterrupt:
+                    console.print("\n[dim]Use /exit to quit[/dim]")
+                except EOFError:
+                    break
+
+        console.print("\n[dim]Goodbye![/dim]")    
+        
     def _get_tool_kind(self,tool_name: str) -> str | None:
         tool = self.agent.tool_registry.get(tool_name)
         tool_kind = None
@@ -66,11 +84,11 @@ class CLI:
                 self.agentUi.tool_call_complete(event.data.get("call_id"),
                                             tool_name,
                                             tool_kind,
-                                            success=event.data.get("success"),
-                                            output=event.data.get("output"),
-                                            error=event.data.get("error"),
-                                            metadata=event.data.get("metadata"),
-                                            truncated=event.data.get("truncated")
+                                            success=event.data.get("success",False),
+                                            output=event.data.get("output",""),
+                                            error=event.data.get("error",None),
+                                            metadata=event.data.get("metadata",None),
+                                            truncated=event.data.get("truncated",False)
                                             )
         
         return final_response
@@ -84,9 +102,13 @@ class CLI:
 @click.argument("prompt",required=False)
 def main(prompt : str | None):
     cli = CLI()
-    result = asyncio.run(cli.run_single(message=prompt))
-    if result is None:
-        sys.exit(1)
+    if prompt:
+        result = asyncio.run(cli.run_single(message=prompt))
+        if result is None:
+            sys.exit(1)
+    else:
+        asyncio.run(cli.run_interactive())
+    
 
 if __name__ == "__main__":
     main()
