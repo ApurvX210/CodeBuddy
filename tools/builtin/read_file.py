@@ -118,7 +118,7 @@ class ReadFileTool(Tool):
                     'path' : str(path),
                     'total_lines' : total_lines,
                     'shown_start' : start_idx + 1,
-                    'show_end' : end_idx
+                    'shown_end' : end_idx
                 }
             )
         except Exception as e:

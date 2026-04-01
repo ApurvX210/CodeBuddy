@@ -1,14 +1,18 @@
 from pathlib import Path
 from typing import Any
 
-from rich.console import Console
+from rich.console import Console, Group
 from rich.theme import Theme
 from rich.rule import Rule
 from rich.text import Text
 from rich.panel import Panel
 from rich.table import Table
 from rich import box
+from rich.syntax import Syntax
 from utils.paths import display_path_rel_to_cwd, resolve_path
+import re
+
+from utils.text import truncate_text
 
 AGENT_THEME = Theme(
     {
@@ -98,10 +102,10 @@ class AgentUI:
         border_style = f"tool.{tool_kind}" if tool_kind else "tool"
 
         title = Text.assemble(
-            ("*","muted"),
+            ("•","muted"),
             (name,"tool"),
             (" ","muted"),
-            (f"#{call_id}","muted"),
+            (f"#{call_id[:8]}","muted"),
         )
 
         display_args = arguments
@@ -112,9 +116,10 @@ class AgentUI:
         pannel = Panel(
             self._render_args_tab(name,arguments) if arguments else Text('(no args)',style="muted"),
             title=title,
+            title_align="left",
             padding=(1,2),
             box=box.ROUNDED,
-            border_style="border",
+            border_style=border_style,
             subtitle=Text("running","muted"),
             subtitle_align='right'
         )
@@ -122,29 +127,127 @@ class AgentUI:
         self.console.print()
         self.console.print(pannel)
 
-    def tool_call_complete(self,call_id : str,name : str,success : bool, output: str, error : str|None,metadata : dict[str,Any] | None,truncated:bool):
-        self._tool_args_by_call_id[call_id] = arguments
+    def _extract_read_file_code(self,text: str) -> tuple[int,str] | None:
+        body = text
+        header_match = re.match(r"^Showing lines (\d+)-(\d+) of (\d+)\n\n",text)
+        if header_match:
+            body = text[header_match.end():]
+
+        code_lines : list[str] = []
+        start_line: int = None
+
+        for line in body.splitlines():
+            m = re.match(r"^\s*(\d+)\|(.*)",line)
+            if not m:
+                continue
+            line_no = int(m.group(1))
+            if start_line is None:
+                start_line = line_no
+            code_lines.append(m.group(2))
+
+        if start_line is None:
+            return None
+        
+        return start_line,"\n".join(code_lines)
+    
+    def _guess_language(self, path: str | None) -> str:
+        if not path:
+            return "text"
+        suffix = Path(path).suffix.lower()
+        return {
+            ".py": "python",
+            ".js": "javascript",
+            ".jsx": "jsx",
+            ".ts": "typescript",
+            ".tsx": "tsx",
+            ".json": "json",
+            ".toml": "toml",
+            ".yaml": "yaml",
+            ".yml": "yaml",
+            ".md": "markdown",
+            ".sh": "bash",
+            ".bash": "bash",
+            ".zsh": "bash",
+            ".rs": "rust",
+            ".go": "go",
+            ".java": "java",
+            ".kt": "kotlin",
+            ".swift": "swift",
+            ".c": "c",
+            ".h": "c",
+            ".cpp": "cpp",
+            ".hpp": "cpp",
+            ".css": "css",
+            ".html": "html",
+            ".xml": "xml",
+            ".sql": "sql",
+        }.get(suffix, "text")
+
+    def tool_call_complete(self,call_id : str,name : str,tool_kind:str,success : bool, output: str, error : str|None,metadata : dict[str,Any] | None,truncated:bool):
         border_style = f"tool.{tool_kind}" if tool_kind else "tool"
+        status_icon = "✓" if success else "✗"
+        status_style = 'success' if success else 'error'
 
         title = Text.assemble(
-            ("*","muted"),
+            ("status_icon","status_style"),
             (name,"tool"),
             (" ","muted"),
-            (f"#{call_id}","muted"),
+            (f"#{call_id[:8]}","muted"),
         )
 
-        display_args = arguments
-        for key in ('path','cwd'):
-            val = display_args.get(key)
-            if isinstance(val,str) and self.cwd:
-                display_args[key] = str(display_path_rel_to_cwd(self.cwd,val))
+        primary_path = None
+        blocks = []
+        if isinstance(metadata,dict) and isinstance(metadata.get("path"),str):
+            primary_path = metadata.get("path")
+
+        if name == "read_file" and success:
+            if primary_path:
+                start_line,code = self._extract_read_file_code(output)
+                shown_start = metadata.get("shown_start")
+                shown_end = metadata.get("shown_end")
+                total_lines = metadata.get("shown_start")
+
+                pl = self._guess_language(primary_path)
+                blocks.append(Text())
+                
+                header_parts = [display_path_rel_to_cwd(primary_path,self.cwd)]
+                header_parts.append(" • ")
+
+                if shown_start and shown_end and total_lines:
+                    header_parts.append(f"lines {shown_start}-{shown_end} of {total_lines}")
+
+                header = "".join(header_parts)
+
+                blocks.append(Text(header,style="muted"))
+                blocks.append(Syntax(
+                    code,
+                    pl,
+                    theme='monokai',
+                    line_numbers=True,
+                    word_wrap=False
+                ))
+            else:
+                output_display = truncate_text(output,"",240)
+                blocks.append(Syntax(
+                    output_display,
+                    "text",
+                    theme='monokai',
+                    word_wrap=False
+                ))
+        
+        if truncated:
+            blocks.append(Text('note: tool output was truncated',style="warning"))
+        
         pannel = Panel(
-            self._render_args_tab(name,arguments) if arguments else Text('(no args)',style="muted"),
+            Group(
+                *blocks
+            ),
             title=title,
+            title_align="left",
             padding=(1,2),
             box=box.ROUNDED,
             border_style="border",
-            subtitle=Text("running","muted"),
+            subtitle=Text("done" if success else "failed",style=status_style),
             subtitle_align='right'
         )
 
