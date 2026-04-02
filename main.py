@@ -1,3 +1,4 @@
+from pathlib import Path
 import sys
 from typing import Any
 from agent.agent import Agent
@@ -21,8 +22,13 @@ class CLI:
         
     async def run_interactive(self) ->str:
         async with Agent() as agent:
-            self.agentUi.print_welcome()
             self.agent = agent
+            self.agentUi.print_welcome(
+                f"model: {self.agent.llm._MODEL}",
+                lines=[
+                f"cwd: {str(Path.cwd)}",
+                f"commands : /help /config /approval /model /exit"]
+            )
             while True:
                 try:
                     user_input = console.input("\n[user]>[/user] ").strip()
@@ -53,7 +59,6 @@ class CLI:
         assistant_streaming = False
         final_response = None
         async for event in self.agent.run(message=message):
-            print(event)
             if event.type == AgentEventType.TEXT_DELTA:
                 content = event.data.get("content","")
                 if assistant_streaming == False:
