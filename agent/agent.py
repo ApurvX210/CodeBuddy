@@ -5,14 +5,16 @@ from typing import AsyncGenerator, List
 from agent.events import AgentEvent, AgentEventType
 from client.llm import LLM
 from client.response import StreamEventType, ToolCall, ToolResultMessage
+from config.config import Config
 from context.contextManager import ContextManager
 from tools.registery import create_default_registry
 
 
 class Agent:
-    def __init__(self):
-        self.llm = LLM()
-        self.contextManager = ContextManager()
+    def __init__(self,config: Config):
+        self.config = config
+        self.llm = LLM(config=config)
+        self.contextManager = ContextManager(config=config)
         self.tool_registry = create_default_registry()
 
     async def run(self,message:str) -> AsyncGenerator[AgentEvent]:

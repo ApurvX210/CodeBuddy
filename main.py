@@ -7,21 +7,24 @@ from client.llm import LLM
 import asyncio
 import click
 
+from config.config import Config
+from config.loader import load_config
 from ui.renderer import AgentUI, get_console
 
 console = get_console()
 class CLI:
-    def __init__(self):
+    def __init__(self,config: Config):
+        self.config : Config = config
         self.agent : Agent | None = None
-        self.agentUi = AgentUI(console=console)
+        self.agentUi = AgentUI(console=console,config=config)
 
     async def run_single(self,message : str) ->str:
-        async with Agent() as agent:
+        async with Agent(self.config) as agent:
             self.agent = agent
             return await self._process_message(message)
         
     async def run_interactive(self) ->str:
-        async with Agent() as agent:
+        async with Agent(self.config) as agent:
             self.agent = agent
             self.agentUi.print_welcome(
                 f"model: {self.agent.llm._MODEL}",
@@ -105,8 +108,28 @@ class CLI:
 
 @click.command()
 @click.argument("prompt",required=False)
-def main(prompt : str | None):
-    cli = CLI()
+@click.option(
+    '--cwd',
+    '-c',
+    type=click.Path(exists=True,file_okay=False,path_type=Path),
+    help="Current working directory"
+)
+def main(prompt : str | None,cwd : Path | None):
+    try:
+        config = load_config(cwd=cwd)
+    except Exception as e:
+        console.print(f"[error]Configuration Error : {e}[/error]")
+        sys.exit(1)
+
+    errors = config.validate()
+
+    if errors:
+        for error in errors:
+            console.print(f"[error]{error}[/error]")
+
+        sys.exit(1)
+
+    cli = CLI(config=config)
     if prompt:
         result = asyncio.run(cli.run_single(message=prompt))
         if result is None:

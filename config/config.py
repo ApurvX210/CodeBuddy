@@ -4,7 +4,7 @@ from pathlib import Path
 from pydantic import BaseModel,Field
 
 class ModelConfig(BaseModel):
-    name: str = "stepfun/step-3.5-flash:free"
+    name: str
     temperature: float = Field(default=1,ge=0.0,le=2.0) #Used to define creativity of model
     context_window:int = 256000
 

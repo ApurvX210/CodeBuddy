@@ -9,6 +9,7 @@ from rich.panel import Panel
 from rich.table import Table
 from rich import box
 from rich.syntax import Syntax
+from config.config import Config
 from utils.paths import display_path_rel_to_cwd, resolve_path
 import re
 
@@ -47,11 +48,12 @@ def get_console() -> Console:
     return _console
 
 class AgentUI:
-    def __init__(self,console : Console | None = None) -> None:
+    def __init__(self,config : Config,console : Console | None = None) -> None:
         self.console = console or get_console()
+        self.config = config
         self._assistant_stream_open = False
         self._tool_args_by_call_id: dict[str,dict[str,Any]] = {}
-        self.cwd = Path.cwd()
+        self.cwd = config.cwd
 
     def begin_assistant(self):
         self.console.print()

@@ -4,12 +4,14 @@ from typing import Any, AsyncGenerator
 from openai import APIConnectionError, AsyncOpenAI, RateLimitError
 
 from client.response import StreamEventType, StreamEvent, TextDelta, TokenUsage, ToolCall, ToolCallDelta, parse_tool_call_arguments
+from config.config import Config
 
 class LLM:
-    def __init__(self) -> None:
-        self._LLM_API_KEY = os.getenv(key="LLM_API_KEY")
-        self._BASE_URL = os.getenv(key="BASE_URL")
-        self._MODEL = os.getenv(key="MODEL_NAME")
+    def __init__(self,config : Config) -> None:
+        self.config = config
+        self._LLM_API_KEY = config.api_key
+        self._BASE_URL = config.base_url
+        self._MODEL = config.model_name
         self._max_retries = int(os.getenv(key="MAX_RETRIES"))
         self._client : AsyncOpenAI | None = None
         

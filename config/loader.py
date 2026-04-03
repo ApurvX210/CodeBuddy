@@ -44,7 +44,7 @@ def _get_agent_md_file(cwd: Path) -> str | None:
 
 def _merge_dicts(base: dict[str,Any],override: dict[str,Any]) -> dict[str,Any]:
     result = base.copy()
-    for key,value in override:
+    for key,value in override.items():
         if key in result and isinstance(result[key],dict) and isinstance(value,dict):
             result[key] = _merge_dicts(result[key],value)
         else:
