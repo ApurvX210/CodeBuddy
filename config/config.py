@@ -15,8 +15,8 @@ class Config(BaseModel):
     max_turns: int = 100
     max_tool_output_tokens: int = 50000
 
-    developer_instruction: str | None = None
-    user_instruction: str | None = None
+    developer_instructions: str | None = None
+    user_instructions: str | None = None
 
     debug: bool = False
 

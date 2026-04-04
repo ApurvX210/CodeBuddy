@@ -203,7 +203,7 @@ class AgentUI:
         status_style = 'success' if success else 'error'
 
         title = Text.assemble(
-            ("status_icon","status_style"),
+            (status_icon,"status_style"),
             (name,"tool"),
             (" ","muted"),
             (f"#{call_id[:8]}","muted"),

@@ -27,7 +27,7 @@ class CLI:
         async with Agent(self.config) as agent:
             self.agent = agent
             self.agentUi.print_welcome(
-                f"model: {self.agent.llm._MODEL}",
+                f"model: {self.agent.session.llm._MODEL}",
                 lines=[
                 f"cwd: {str(self.config.cwd)}",
                 f"commands : /help /config /approval /model /exit"]
@@ -47,7 +47,7 @@ class CLI:
         console.print("\n[dim]Goodbye![/dim]")    
         
     def _get_tool_kind(self,tool_name: str) -> str | None:
-        tool = self.agent.tool_registry.get(tool_name)
+        tool = self.agent.session.tool_registry.get(tool_name)
         tool_kind = None
         if not tool:
             tool_kind = None

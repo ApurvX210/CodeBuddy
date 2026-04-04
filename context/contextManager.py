@@ -76,5 +76,4 @@ class ContextManager:
         for messageItem in self._messages:
             messages.append(messageItem.to_dict())
 
-        print(messages)
         return messages
