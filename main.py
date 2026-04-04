@@ -29,7 +29,7 @@ class CLI:
             self.agentUi.print_welcome(
                 f"model: {self.agent.llm._MODEL}",
                 lines=[
-                f"cwd: {str(Path.cwd)}",
+                f"cwd: {str(self.config.cwd)}",
                 f"commands : /help /config /approval /model /exit"]
             )
             while True:

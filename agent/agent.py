@@ -67,7 +67,7 @@ class Agent:
         for tool_call in tool_calls:
             yield AgentEvent.tool_call_start(call_id=tool_call.call_id,name=tool_call.name,arguments=tool_call.arguments)
 
-            result = await self.tool_registry.invoke(name=tool_call.name,params=tool_call.arguments,cwd=Path.cwd())
+            result = await self.tool_registry.invoke(name=tool_call.name,params=tool_call.arguments,cwd=self.config.cwd)
 
             yield AgentEvent.tool_call_complete(call_id=tool_call.call_id,name=tool_call.name,result=result)
 
