@@ -1,6 +1,7 @@
 from pydantic import BaseModel,Field
 
 from tools.base import Tool, ToolInvocation, ToolKind, ToolResult
+from utils.paths import ensure_parent_directory, resolve_path
 
 
 class WriteFileParams(BaseModel):
@@ -24,4 +25,30 @@ class WriteFileTool(Tool):
     schema = WriteFileParams
 
     async def execute(self, invocation: ToolInvocation) -> ToolResult:
-        return await super().execute(invocation)
+        params = WriteFileParams(**invocation.params)
+        path = resolve_path(invocation.cwd,params.path)
+
+        is_new_file = not path.exists()
+        old_content = ""
+        if not is_new_file:
+            try:
+                old_content = path.read_text(encoding='utf-8')
+            except:
+                pass
+
+        try:
+            if params.create_directory:
+                ensure_parent_directory(path=path)
+            elif not path.parent.exists():
+                return ToolResult.error_result(f"Parent directory does not exist: {path.parent}")
+            
+            path.write_text(params.content,encoding='utf-8')
+
+            action = "Created" if is_new_file else "Updated"
+            line_count = len(params.content.splitlines())
+
+            return ToolResult.success_result(
+                output= f"{action} {path} {line_count} lines"
+            )
+        except OSError as e:
+            return ToolResult.error_result(f"Failed to write file: {e}")
