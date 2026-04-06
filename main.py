@@ -96,7 +96,8 @@ class CLI:
                                             output=event.data.get("output",""),
                                             error=event.data.get("error",None),
                                             metadata=event.data.get("metadata",None),
-                                            truncated=event.data.get("truncated",False)
+                                            truncated=event.data.get("truncated",False),
+                                            diff=event.data.get("diff",None)
                                             )
         
         return final_response

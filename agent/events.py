@@ -88,7 +88,8 @@ class AgentEvent:
                 "output" : result.output,
                 "error" : result.error,
                 "metadata" : result.metadata,
-                "truncated" : result.truncated
+                "truncated" : result.truncated,
+                "diff" : result.diff.create_diff() if result.diff else None
             }
         )
     

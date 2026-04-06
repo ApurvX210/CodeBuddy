@@ -67,7 +67,7 @@ class Agent:
 
             if not tool_calls:
                 return
-            print(tool_calls)
+            
             tool_call_result : list[ToolResultMessage] = []
             for tool_call in tool_calls:
                 yield AgentEvent.tool_call_start(call_id=tool_call.call_id,name=tool_call.name,arguments=tool_call.arguments)
