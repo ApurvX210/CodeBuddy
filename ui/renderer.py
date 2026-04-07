@@ -73,7 +73,8 @@ class AgentUI:
     def _ordered_args(self,tool_name:str,args:dict[str,Any]) -> list[tuple]:
         _PREFERRED_ORDER = {
             'read_file' : ['path','offset','limit'],
-            'write_file' : ['path','create_directory','content']
+            'write_file' : ['path','create_directory','content'],
+            'edit_file' : ['path','replace_all','old_string','new_string']
         }
 
         prefered = _PREFERRED_ORDER.get(tool_name,[])
@@ -255,7 +256,7 @@ class AgentUI:
                     theme='monokai',
                     word_wrap=False
                 ))
-        elif name == "write_file" and success and diff:
+        elif name in ["write_file","edit_file"] and success and diff:
             output_line = output.strip() if output.strip() else 'Completed'
             blocks.append(Text(output_line,style="muted"))
             diff_text = diff
