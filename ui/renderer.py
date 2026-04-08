@@ -74,7 +74,8 @@ class AgentUI:
         _PREFERRED_ORDER = {
             'read_file' : ['path','offset','limit'],
             'write_file' : ['path','create_directory','content'],
-            'edit_file' : ['path','replace_all','old_string','new_string']
+            'edit_file' : ['path','replace_all','old_string','new_string'],
+            'shell' : ['command','timeout',"cwd"]
         }
 
         prefered = _PREFERRED_ORDER.get(tool_name,[])
@@ -102,7 +103,7 @@ class AgentUI:
                     line_count = len(value.splitlines()) or 0
                     byte_count = len(value.encode('utf-8',errors='replace'))
                     value = f"<{line_count} lines • {byte_count}>"
-            table.add_row(key,value)
+            table.add_row(key,f"{value}")
 
         return table
     
@@ -205,7 +206,19 @@ class AgentUI:
             ".sql": "sql",
         }.get(suffix, "text")
 
-    def tool_call_complete(self,call_id : str,name : str,tool_kind:str,success : bool, output: str, error : str|None,metadata : dict[str,Any] | None,truncated:bool,diff: str | None):
+    def tool_call_complete(
+                self,
+                call_id : str,
+                name : str,
+                tool_kind:str,
+                success : bool,
+                output: str,
+                error : str|None,
+                metadata : dict[str,Any] | None,
+                truncated:bool,
+                diff: str | None,
+                exit_code: int | None,
+            ):
         border_style = f"tool.{tool_kind}" if tool_kind else "tool"
         status_icon = "✓" if success else "✗"
         status_style = 'success' if success else 'error'
@@ -221,7 +234,8 @@ class AgentUI:
         blocks = []
         if isinstance(metadata,dict) and isinstance(metadata.get("path"),str):
             primary_path = metadata.get("path")
-
+        
+        args = self._tool_args_by_call_id.get(call_id,{})
         if name == "read_file" and success:
             if primary_path:
                 start_line,code = self._extract_read_file_code(output)
@@ -249,7 +263,7 @@ class AgentUI:
                     word_wrap=False
                 ))
             else:
-                output_display = truncate_text(output,"",240)
+                output_display = truncate_text(output,self.config.model_name,self._max_block_tokens)
                 blocks.append(Syntax(
                     output_display,
                     "text",
@@ -262,7 +276,21 @@ class AgentUI:
             diff_text = diff
             diff_display = truncate_text(diff_text,model=self.config.model_name,max_tokens=self._max_block_tokens)
             blocks.append(Syntax(diff_display,'diff',theme='monokai',word_wrap=True))
-        
+        elif name == "shell":
+            command = args.get("command")
+            if isinstance(command,str) and command.strip():
+                blocks.append(Text(f'$ {command.strip()}',style='muted'))
+
+            if exit_code is not None:
+                blocks.append(Text(f"exit_code={exit_code}",style='muted'))
+
+            output_display = truncate_text(output,self.config.model_name,self._max_block_tokens)
+            blocks.append(Syntax(
+                    output_display,
+                    "text",
+                    theme='monokai',
+                    word_wrap=True
+                ))
         if truncated:
             blocks.append(Text('note: tool output was truncated',style="warning"))
         

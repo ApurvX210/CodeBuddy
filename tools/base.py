@@ -7,6 +7,8 @@ from dataclasses import dataclass, field
 from pydantic import BaseModel, ValidationError
 from pydantic.json_schema import model_json_schema
 
+from config.config import Config
+
 @dataclass
 class ToolInvocation:
     params: dict[str,Any]
@@ -27,6 +29,7 @@ class ToolResult:
 
     truncated : bool = False
     diff: FileDiff | None = None
+    exit_code:int | None = None
 
     @classmethod
     def error_result(
@@ -106,7 +109,8 @@ class Tool(abc.ABC):
     description: str = "Base tool"
     kind: ToolKind = ToolKind.READ
 
-    def __init__(self) -> None:
+    def __init__(self,config: Config) -> None:
+        self.config = config
         pass
     
     @property

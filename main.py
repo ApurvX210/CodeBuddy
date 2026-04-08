@@ -75,7 +75,8 @@ class CLI:
             elif event.type == AgentEventType.AGENT_ERROR:
                 error = event.data.get("error","Unkown Error")
                 assistant_streaming = False
-                self.agentUi.end_assistant(f"\n[error]Error : {error}[/error]")
+                console.print(f"\n[error]Error: {error}[/error]")
+                self.agentUi.end_assistant()
             elif event.type == AgentEventType.TOOL_CALL_START:
                 tool_name = event.data.get("name","unknown")
                 tool_kind = self._get_tool_kind(tool_name)
@@ -97,7 +98,8 @@ class CLI:
                                             error=event.data.get("error",None),
                                             metadata=event.data.get("metadata",None),
                                             truncated=event.data.get("truncated",False),
-                                            diff=event.data.get("diff",None)
+                                            diff=event.data.get("diff",None),
+                                            exit_code=event.data.get("exit_code",None)
                                             )
         
         return final_response
