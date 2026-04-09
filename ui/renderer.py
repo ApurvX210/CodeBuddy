@@ -77,7 +77,8 @@ class AgentUI:
             'edit_file' : ['path','replace_all','old_string','new_string'],
             'shell' : ['command','timeout',"cwd"],
             'list_dir' : ['path','include_hidden'],
-            'grep' : ['path','case_insensitive','pattern']
+            'grep' : ['path','case_insensitive','pattern'],
+            'glob' : ['path','pattern']
         }
 
         prefered = _PREFERRED_ORDER.get(tool_name,[])
@@ -311,7 +312,7 @@ class AgentUI:
                     theme='monokai',
                     word_wrap=True
                 ))
-        elif name == "grep" and success:
+        elif name in ["grep","glob"] and success:
             path = metadata.get('path')
             matches = metadata.get("matches")
             file_searched = metadata.get("file_searched")
