@@ -1,11 +1,8 @@
-from pathlib import Path
-
 from pydantic import BaseModel, Field
 
 from tools.base import Tool, ToolInvocation, ToolKind, ToolResult
-from utils.paths import is_binary_file, resolve_path
-import re
-import os
+from utils.paths import resolve_path
+
 class GlobParams(BaseModel):
     pattern: str = Field(
         ...,description="Glob pattern to match"

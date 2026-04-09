@@ -78,7 +78,8 @@ class AgentUI:
             'shell' : ['command','timeout',"cwd"],
             'list_dir' : ['path','include_hidden'],
             'grep' : ['path','case_insensitive','pattern'],
-            'glob' : ['path','pattern']
+            'glob' : ['path','pattern'],
+            'web_search' : ['query','max_results']
         }
 
         prefered = _PREFERRED_ORDER.get(tool_name,[])
@@ -333,6 +334,26 @@ class AgentUI:
                     theme='monokai',
                     word_wrap=True
                 ))
+        elif name in ["web_search"] and success:
+            results = metadata.get('results')
+            query = args.get('query')
+            summary = []
+            if isinstance(results,int):
+                summary.append(f"{results} results")
+
+            if isinstance(query,str):
+                summary.append(query)
+            
+            if summary:
+                blocks.append(Text(" • ".join(summary),style='muted'))
+            output_display = truncate_text(output,self.config.model_name,self._max_block_tokens)
+            blocks.append(Syntax(
+                    output_display,
+                    "text",
+                    theme='monokai',
+                    word_wrap=True
+                ))
+            
         if truncated:
             blocks.append(Text('note: tool output was truncated',style="warning"))
         
