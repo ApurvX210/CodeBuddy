@@ -76,7 +76,8 @@ class AgentUI:
             'write_file' : ['path','create_directory','content'],
             'edit_file' : ['path','replace_all','old_string','new_string'],
             'shell' : ['command','timeout',"cwd"],
-            'list_dir' : ['path','include_hidden']
+            'list_dir' : ['path','include_hidden'],
+            'grep' : ['path','case_insensitive','pattern']
         }
 
         prefered = _PREFERRED_ORDER.get(tool_name,[])
@@ -292,7 +293,7 @@ class AgentUI:
                     theme='monokai',
                     word_wrap=True
                 ))
-        elif name == "list_dir":
+        elif name == "list_dir" and success:
             entries = metadata.get("entries")
             path = metadata.get('path')
             summary = []
@@ -300,6 +301,27 @@ class AgentUI:
                 summary.append(path)
             if isinstance(entries,int):
                 summary.append(f"{entries} entries")
+            
+            if summary:
+                blocks.append(Text(" • ".join(summary),style='muted'))
+            output_display = truncate_text(output,self.config.model_name,self._max_block_tokens)
+            blocks.append(Syntax(
+                    output_display,
+                    "text",
+                    theme='monokai',
+                    word_wrap=True
+                ))
+        elif name == "grep" and success:
+            path = metadata.get('path')
+            matches = metadata.get("matches")
+            file_searched = metadata.get("file_searched")
+            summary = []
+            if isinstance(path,str):
+                summary.append(path)
+            if isinstance(matches,int):
+                summary.append(f"{matches} matches")
+            if isinstance(file_searched,int):
+                summary.append(f"{file_searched} file_searched")
             
             if summary:
                 blocks.append(Text(" • ".join(summary),style='muted'))
