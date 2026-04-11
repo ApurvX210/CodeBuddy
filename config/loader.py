@@ -3,7 +3,7 @@ from pathlib import Path
 from typing import Any
 from tomli import TOMLDecodeError
 import tomli
-from platformdirs import user_config_dir
+from platformdirs import user_config_dir, user_data_dir
 from config.config import Config
 from utils.errors import ConfigError
 import logging
@@ -29,6 +29,9 @@ def _get_project_configuration(cwd: Path) -> Path | None:
             return config_file
         
     return None
+
+def get_data_dir() -> Path:
+    return Path(user_data_dir('CODEBUDDY'))
 
 def _get_agent_md_file(cwd: Path) -> str | None:
     current = cwd.resolve()
