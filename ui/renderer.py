@@ -396,6 +396,31 @@ class AgentUI:
                     word_wrap=True,
                 )
             )
+        elif name == "memory" and success:
+            action = args.get('action')
+            key = args.get('key')
+            summary = []
+            if isinstance(action, int):
+                summary.append(str(action))
+            
+            if isinstance(key, int):
+                summary.append(str(key))
+
+            if summary:
+                blocks.append(Text(" • ".join(summary), style="muted"))
+            output_display = truncate_text(
+                output,
+                self.config.model_name,
+                self._max_block_tokens,
+            )
+            blocks.append(
+                Syntax(
+                    output_display,
+                    "text",
+                    theme="monokai",
+                    word_wrap=True,
+                )
+            )
             
         if truncated:
             blocks.append(Text('note: tool output was truncated',style="warning"))
