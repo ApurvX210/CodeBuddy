@@ -8,6 +8,7 @@ from tools.builtin.grep import GrepTool
 from tools.builtin.glob import GlobTool
 from tools.builtin.web_search import WebSearchTool
 from tools.builtin.web_fetch import WebFetchTool
+from tools.builtin.todo import TodosTool
 
 __all__ = [
     'ReadFileTool'
@@ -23,5 +24,6 @@ def get_all_builtin_tool() -> list[Tool]:
         GrepTool,
         GlobTool,
         WebSearchTool,
-        WebFetchTool
+        WebFetchTool,
+        TodosTool
     ]

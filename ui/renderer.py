@@ -382,6 +382,20 @@ class AgentUI:
                     word_wrap=True,
                 )
             )
+        elif name == "todos" and success:
+            output_display = truncate_text(
+                output,
+                self.config.model_name,
+                self._max_block_tokens,
+            )
+            blocks.append(
+                Syntax(
+                    output_display,
+                    "text",
+                    theme="monokai",
+                    word_wrap=True,
+                )
+            )
             
         if truncated:
             blocks.append(Text('note: tool output was truncated',style="warning"))
