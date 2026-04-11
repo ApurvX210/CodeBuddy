@@ -25,7 +25,7 @@ class MemoryTool(Tool):
         data_dir.mkdir(parents=True,exist_ok=True)
         path = data_dir / "user_memory.json"
 
-        if path.exists():
+        if not path.exists():
             return {
                 'entries' :{}
             }

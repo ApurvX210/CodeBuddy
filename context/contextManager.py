@@ -3,6 +3,7 @@ import os
 from typing import Any
 from config.config import Config
 from prompts.system import get_system_prompt
+from tools.base import Tool
 from utils.text import count_token
 
 @dataclass
@@ -30,9 +31,9 @@ class MessageItem:
         return result
 
 class ContextManager:
-    def __init__(self,config:Config) -> None:
+    def __init__(self,config:Config,user_memory: str | None,tools: list[Tool] | None) -> None:
         # It tell llm how to behave
-        self._system_prompt = get_system_prompt(config=config)
+        self._system_prompt = get_system_prompt(config=config,user_memory=user_memory,tools=tools)
         self.model = config.model_name
         self._messages : list[MessageItem] = []
 

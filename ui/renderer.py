@@ -80,7 +80,9 @@ class AgentUI:
             'grep' : ['path','case_insensitive','pattern'],
             'glob' : ['path','pattern'],
             'web_search' : ['query','max_results'],
-            "web_fetch" : ['url','timeout']
+            "web_fetch" : ['url','timeout'],
+            'memory' : ['action','key','value'],
+            'todos' : ['action','content']
         }
 
         prefered = _PREFERRED_ORDER.get(tool_name,[])
