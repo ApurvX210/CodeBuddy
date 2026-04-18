@@ -423,41 +423,39 @@ class AgentUI:
                     word_wrap=True,
                 )
             )
-            
-        if truncated:
-            blocks.append(Text('note: tool output was truncated',style="warning"))
-        
-        if error and not success:
-            blocks.append(Text(error,style="error"))
+        else:
+            if error and not success:
+                blocks.append(Text(error, style="error"))
 
-            output_display = truncate_text(output,self.config.model_name,self._max_block_tokens)
+            output_display = truncate_text(
+                output, self.config.model_name, self._max_block_tokens
+            )
             if output_display.strip():
-                blocks.append(Syntax(
+                blocks.append(
+                    Syntax(
                         output_display,
                         "text",
-                        theme='monokai',
-                        word_wrap=True
-                    ))
+                        theme="monokai",
+                        word_wrap=True,
+                    )
+                )
             else:
-                blocks.append(Syntax(
-                        Text("(No output)",style="muted"),
-                        "text",
-                        theme='monokai',
-                        word_wrap=True
-                    ))
-            
-        pannel = Panel(
+                blocks.append(Text("(no output)", style="muted"))
+
+        if truncated:
+            blocks.append(Text("note: tool output was truncated", style="warning"))
+
+        panel = Panel(
             Group(
-                *blocks
+                *blocks,
             ),
             title=title,
             title_align="left",
-            padding=(1,2),
+            subtitle=Text("done" if success else "failed", style=status_style),
+            subtitle_align="right",
+            border_style=border_style,
             box=box.ROUNDED,
-            border_style="border",
-            subtitle=Text("done" if success else "failed",style=status_style),
-            subtitle_align='right'
+            padding=(1, 2),
         )
-
         self.console.print()
-        self.console.print(pannel)
+        self.console.print(panel)

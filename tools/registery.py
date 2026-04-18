@@ -16,7 +16,7 @@ class ToolRegistery:
 
     def register(self,tool : Tool):
         if tool.name in self._tools:
-            logger.warning(f"Overiting existoing tool : {tool.name}")
+            logger.warning(f"Overiting existing tool : {tool.name}")
 
         self._tools[tool.name] = tool
         logger.debug(f"Registered the tool : {tool.name}")
@@ -36,11 +36,11 @@ class ToolRegistery:
     
     def get_tools(self) -> list[Tool]:
         tools : list[Tool] = []
-        allowed_tools = set(self.config.allowed_tools)
         for tool in self._tools.values():
             tools.append(tool)
 
-        if allowed_tools:
+        if self.config.allowed_tools:
+            allowed_tools = set(self.config.allowed_tools)
             tools = [tool for tool in tools if tool in allowed_tools]
 
         return tools
@@ -74,12 +74,11 @@ class ToolRegistery:
         
 def create_default_registry(config: Config) -> ToolRegistery:
     registry = ToolRegistery(config)
-    allowed_tools = config.allowed_tools
     for tool_class in get_all_builtin_tool():
         registry.register(tool_class(config))
 
     for subagent_def in get_all_subagents_definitions():
         registry.register(SubAgentTool(config,subagent_def))
-        
+
     return registry
         

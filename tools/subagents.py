@@ -3,9 +3,6 @@ from dataclasses import dataclass
 from typing import Any
 
 from pydantic import BaseModel,Field
-
-from agent.agent import Agent
-from agent.events import AgentEvent
 from config.config import Config
 from tools.base import Tool, ToolInvocation, ToolResult
 
@@ -21,7 +18,7 @@ class SubagentDefinition:
     goal_prompt: str
     allowed_tools: list[str] | None = None
     max_turns: int = 20
-    timeout_second: float = 600
+    timeout_seconds: float = 600
 
 class SubAgentTool(Tool):
     def __init__(self, config: Config,definition: SubagentDefinition):
@@ -42,6 +39,8 @@ class SubAgentTool(Tool):
         return True
     
     async def execute(self, invocation: ToolInvocation) -> ToolResult:
+        from agent.agent import Agent
+        from agent.events import AgentEventType
         params = SubAgentParams(**invocation.params)
 
         if not params.goal:
@@ -75,18 +74,21 @@ class SubAgentTool(Tool):
         terminate_response = 'goal'
         try:
             async with Agent(config=subagent_config) as agent:
-                deadline = asyncio.get_event_loop().time() + self.definition.timeout_second
+                deadline = asyncio.get_event_loop().time() + self.definition.timeout_seconds
                 async for event in agent.run(prompt):
                     if asyncio.get_event_loop().time() > deadline:
                         terminate_response = 'timeout'
                         final_response = f"Sub-agent timeout"
                         break
 
-                    if event.type == AgentEvent.tool_call_start:
+                    if event.type == AgentEventType.TOOL_CALL_START:
                         tool_calls.append(event.data.get("name"))
-                    elif event.type == AgentEvent.text_complete:
+                    elif event.type == AgentEventType.TEXT_COMPLETE:
                         final_response = event.data.get('content')
-                    elif event.type == AgentEvent.agent_error:
+                    elif event.type == AgentEventType.AGENT_END:
+                        if final_response is None:
+                            final_response = event.data.get('response')
+                    elif event.type == AgentEventType.AGENT_ERROR:
                         terminate_response = "error"
                         error = event.data.get('error',"Unknown")
                         final_response = f"Sub-agent error: {error}"

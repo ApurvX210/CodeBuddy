@@ -15,7 +15,7 @@ class MemoryParams(BaseModel):
     value: str | None = Field(None, description="Value to store (required for `set`)")
 
 class MemoryTool(Tool):
-    name = "todos"
+    name = "memory"
     kind = ToolKind.MEMORY
     description = "Store and retrieve persistent memory. Use this to remember user preferences., important context or notes"
     schema = MemoryParams
