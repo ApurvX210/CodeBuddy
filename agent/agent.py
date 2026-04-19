@@ -89,9 +89,13 @@ class Agent:
                 )
 
     async def __aenter__(self) -> Agent:
+        await self.session.initialize()
         return self
     
     async def __aexit__(self,exc_type, exc_val,exc_tb) -> Agent:
-        if self.session and self.session.llm:
+        if self.session and self.session.llm and self.session.mcp_manager:
             await self.session.llm.close()
+            await self.session.mcp_manager.shutdown()
             self.session = None
+
+        
